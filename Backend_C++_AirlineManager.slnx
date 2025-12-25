@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Backend_C++_AirlineManager.vcxproj" />
+  <Project Path="Backend_C++_AirlineManager.vcxproj" Id="26f54bc5-e952-46ba-a629-790c56faf43f" />
 </Solution>
