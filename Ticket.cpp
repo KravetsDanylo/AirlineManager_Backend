@@ -14,6 +14,7 @@ int Ticket::getId() const { return id; }
 int Ticket::getFlightId() const { return flightId; }
 double Ticket::getPrice() const { return price; }
 std::shared_ptr<Passenger> Ticket::getPassenger() const { return passenger; }
+SeatClass Ticket::getSeatClass() const { return seatClass; }
 std::string Ticket::getSeatClassStr() const {
     switch (seatClass) {
     case SeatClass::ECONOMY: return "Economy"; 

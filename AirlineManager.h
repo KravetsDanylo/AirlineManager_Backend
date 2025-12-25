@@ -1,9 +1,6 @@
 #pragma once
 #include <vector>
 #include <memory>
-#pragma once
-#include <vector>
-#include <memory>
 #include <algorithm>
 #include <string>
 #include "Flight.h"
@@ -19,7 +16,7 @@ private:
 
 public:
     
-    int createPassenger(std::string name, std::string passport, std::string phone, std::string email);
+    int createPassenger(std::string name, std::string passport, std::string phone, std::string email, std::string address, std::string birthDate);
     std::vector<std::shared_ptr<Passenger>> getAllPassengers() const;
     std::shared_ptr<Passenger> getPassengerById(int id);
 

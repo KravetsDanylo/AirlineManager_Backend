@@ -20,6 +20,7 @@ public:
     int getId() const;
     int getFlightId() const;
     double getPrice() const;
+    SeatClass getSeatClass() const;
     std::string getSeatClassStr() const;
     std::shared_ptr<Passenger> getPassenger() const;
 
