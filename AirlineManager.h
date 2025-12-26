@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include <algorithm>
 #include <string>
 #include "Flight.h"
 #include "Passenger.h"
@@ -22,6 +21,7 @@ public:
 
     
     void createFlight(int id, std::string dest, std::string date, int duration, int seats);
+    bool cancelFlight(int flightId);
     std::vector<std::shared_ptr<Flight>> getAllFlights() const;
     std::shared_ptr<Flight> getFlightById(int id);
 

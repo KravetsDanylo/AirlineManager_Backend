@@ -1,5 +1,5 @@
 #include "Flight.h"
-#include <algorithm> 
+#include <algorithm>
 #include <sstream>
 Flight::Flight(int id, std::string dest, std::string date, int duration, int maxSeats)
     : id(id), destination(dest), dateTime(date), durationMinutes(duration), maxSeats(maxSeats) {}

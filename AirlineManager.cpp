@@ -1,4 +1,5 @@
 #include "AirlineManager.h"
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -25,6 +26,29 @@ std::shared_ptr<Passenger> AirlineManager::getPassengerById(int id) {
 void AirlineManager::createFlight(int id, std::string dest, std::string date, int duration, int seats) {
     auto f = std::make_shared<Flight>(id, dest, date, duration, seats);
     flights.push_back(f);
+}
+bool AirlineManager::cancelFlight(int flightId) {
+   
+    auto flightIt = std::find_if(flights.begin(), flights.end(),
+        [flightId](const std::shared_ptr<Flight>& f) {
+            return f->getId() == flightId;
+        });
+
+    if (flightIt == flights.end()) {
+        return false; 
+    }
+
+    allTickets.erase(
+        std::remove_if(allTickets.begin(), allTickets.end(),
+            [flightId](const std::shared_ptr<Ticket>& t) {
+                return t->getFlightId() == flightId;
+            }),
+        allTickets.end()
+    );
+
+    flights.erase(flightIt);
+
+    return true;
 }
 
 std::vector<std::shared_ptr<Flight>> AirlineManager::getAllFlights() const {
@@ -123,9 +147,9 @@ void AirlineManager::saveData() const {
     }
 
     for (const auto& p : passengers) {
-        pFile << p->getId() << "," << p->getName() << "," << p->getPassport() << ","
-            << p->getPhone() << "," << p->getEmail() << ","
-            << p->getAddress() << "," << p->getBirthDate() << "\n";
+        pFile << p->getId() << "|" << p->getName() << "|" << p->getPassport() << "|"
+            << p->getPhone() << "|" << p->getEmail() << "|"
+            << p->getAddress() << "|" << p->getBirthDate() << "\n";
     }
     pFile.close();
 
@@ -135,8 +159,8 @@ void AirlineManager::saveData() const {
     }
 
     for (const auto& f : flights) {
-        fFile << f->getId() << "," << f->getDestination() << "," << f->getDateTime() << ","
-            << f->getDuration() << "," << f->getMaxSeats() << "\n";
+        fFile << f->getId() << "|" << f->getDestination() << "|" << f->getDateTime() << "|"
+            << f->getDuration() << "|" << f->getMaxSeats() << "\n";
     }
     fFile.close();
 
@@ -146,8 +170,8 @@ void AirlineManager::saveData() const {
     }
 
     for (const auto& t : allTickets) {
-        tFile << t->getId() << "," << t->getFlightId() << "," << t->getPassenger()->getId() << ","
-            << t->getPrice() << "," << static_cast<int>(t->getSeatClass()) << "\n";
+        tFile << t->getId() << "|" << t->getFlightId() << "|" << t->getPassenger()->getId() << "|"
+            << t->getPrice() << "|" << static_cast<int>(t->getSeatClass()) << "\n";
     }
     tFile.close();
 }
@@ -166,7 +190,7 @@ void AirlineManager::loadData() {
             std::stringstream ss(line);
             std::string segment;
             std::vector<std::string> row;
-            while (std::getline(ss, segment, ',')) row.push_back(segment);
+            while (std::getline(ss, segment, '|')) row.push_back(segment);
 
             if (row.size() >= 7) { 
                 int id = std::stoi(row[0]);
@@ -186,7 +210,7 @@ void AirlineManager::loadData() {
             std::stringstream ss(line);
             std::string segment;
             std::vector<std::string> row;
-            while (std::getline(ss, segment, ',')) row.push_back(segment);
+            while (std::getline(ss, segment, '|')) row.push_back(segment);
 
             if (row.size() >= 5) {
                 auto f = std::make_shared<Flight>(std::stoi(row[0]), row[1], row[2], std::stoi(row[3]), std::stoi(row[4]));
@@ -204,7 +228,7 @@ void AirlineManager::loadData() {
             std::stringstream ss(line);
             std::string segment;
             std::vector<std::string> row;
-            while (std::getline(ss, segment, ',')) row.push_back(segment);
+            while (std::getline(ss, segment, '|')) row.push_back(segment);
 
             if (row.size() >= 5) {
                 int tId = std::stoi(row[0]);

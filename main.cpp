@@ -4,6 +4,7 @@
 #include "Ticket.h"
 #include "Flight.h"
 #include "AirlineManager.h"
+
 int main() {
 	// Just fot test
 	return 0;
