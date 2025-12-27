@@ -7,6 +7,9 @@
 
 
 int AirlineManager::createPassenger(std::string name, std::string passport, std::string phone, std::string email, std::string address, std::string birthDate) {
+    if (name.empty() || passport.empty()) {
+        throw std::invalid_argument("Name and passport cannot be empty!");
+    }
     auto p = std::make_shared<Passenger>(name, passport, phone, email, address, birthDate);
     passengers.push_back(p);
     return p->getId(); 
@@ -24,6 +27,12 @@ std::shared_ptr<Passenger> AirlineManager::getPassengerById(int id) {
 }
 
 void AirlineManager::createFlight(int id, std::string dest, std::string date, int duration, int seats) {
+    if (duration <= 0 || seats <= 0) {
+        throw std::invalid_argument("Duration and seats must be positive integers!");
+    }
+    if (getFlightById(id) != nullptr) {
+        throw std::invalid_argument("Flight with this ID already exists!");
+    }
     auto f = std::make_shared<Flight>(id, dest, date, duration, seats);
     flights.push_back(f);
 }
@@ -62,16 +71,20 @@ std::shared_ptr<Flight> AirlineManager::getFlightById(int id) {
     return nullptr;
 }
 
-bool AirlineManager::bookTicket(int flightId, int passengerId, double price, SeatClass sc) {
-    auto flight = getFlightById(flightId);
-    auto passenger = getPassengerById(passengerId);
-
-    if (!flight || !passenger) {
-        return false; 
+void AirlineManager::bookTicket(int flightId, int passengerId, double price, SeatClass sc) {
+    if (price < 0) {
+        throw std::invalid_argument("Price cannot be negative!");
     }
-
+    auto flight = getFlightById(flightId);
+    if (!flight) {
+        throw std::runtime_error("Flight not found!"); 
+    }
+    auto passenger = getPassengerById(passengerId);
+    if (!passenger) {
+        throw std::runtime_error("Passenger not found!");
+    }
     if (flight->getBookedSeats() >= flight->getMaxSeats()) {
-        return false;
+        throw std::runtime_error("No seats available on this flight!");
     }
 
     const auto& flightTickets = flight->getTickets();
@@ -79,15 +92,13 @@ bool AirlineManager::bookTicket(int flightId, int passengerId, double price, Sea
     for (const auto& t : flightTickets) {
         
         if (t->getPassenger()->getId() == passengerId) {
-             return false;
+             throw std::runtime_error("Passenger with this ID is already booked on this flight!");
         }
     }
 
     auto ticket = std::make_shared<Ticket>(flightId, passenger, price, sc);
     allTickets.push_back(ticket);
     flight->addTicket(ticket);
-
-    return true;
 }
 
 bool AirlineManager::cancelTicket(int ticketId) {
@@ -187,16 +198,22 @@ void AirlineManager::loadData() {
     if (pFile.is_open()) {
         int maxPId = 0;
         while (std::getline(pFile, line)) {
+            if (line.empty()) continue; 
             std::stringstream ss(line);
             std::string segment;
             std::vector<std::string> row;
             while (std::getline(ss, segment, '|')) row.push_back(segment);
 
-            if (row.size() >= 7) { 
-                int id = std::stoi(row[0]);
-                auto p = std::make_shared<Passenger>(id, row[1], row[2], row[3], row[4], row[5], row[6]);
-                passengers.push_back(p);
-                if (id > maxPId) maxPId = id;
+            if (row.size() >= 7) {
+                try {
+                    int id = std::stoi(row[0]); 
+                    auto p = std::make_shared<Passenger>(id, row[1], row[2], row[3], row[4], row[5], row[6]);
+                    passengers.push_back(p);
+                    if (id > maxPId) maxPId = id;
+                }
+                catch (...) {
+                    continue; 
+                }
             }
         }
         Passenger::updateIdCounter(maxPId);
@@ -207,45 +224,57 @@ void AirlineManager::loadData() {
     std::ifstream fFile("flights.csv");
     if (fFile.is_open()) {
         while (std::getline(fFile, line)) {
+            if (line.empty()) continue;
             std::stringstream ss(line);
             std::string segment;
             std::vector<std::string> row;
             while (std::getline(ss, segment, '|')) row.push_back(segment);
 
             if (row.size() >= 5) {
-                auto f = std::make_shared<Flight>(std::stoi(row[0]), row[1], row[2], std::stoi(row[3]), std::stoi(row[4]));
-                flights.push_back(f);
+                try {
+                    auto f = std::make_shared<Flight>(std::stoi(row[0]), row[1], row[2], std::stoi(row[3]), std::stoi(row[4]));
+                    flights.push_back(f);
+                }
+                catch (...) {
+                    continue;
+                }
             }
         }
         fFile.close();
     }
 
-  
+    
     std::ifstream tFile("tickets.csv");
     if (tFile.is_open()) {
         int maxTId = 0;
         while (std::getline(tFile, line)) {
+            if (line.empty()) continue;
             std::stringstream ss(line);
             std::string segment;
             std::vector<std::string> row;
             while (std::getline(ss, segment, '|')) row.push_back(segment);
 
             if (row.size() >= 5) {
-                int tId = std::stoi(row[0]);
-                int fId = std::stoi(row[1]);
-                int pId = std::stoi(row[2]);
-                double price = std::stod(row[3]);
-                int seatClassInt = std::stoi(row[4]); 
+                try {
+                    int tId = std::stoi(row[0]);
+                    int fId = std::stoi(row[1]);
+                    int pId = std::stoi(row[2]);
+                    double price = std::stod(row[3]);
+                    int seatClassInt = std::stoi(row[4]);
 
-                auto flight = getFlightById(fId);
-                auto passenger = getPassengerById(pId);
+                    auto flight = getFlightById(fId);
+                    auto passenger = getPassengerById(pId);
 
-                if (flight && passenger) {
-                    SeatClass sc = static_cast<SeatClass>(seatClassInt);
-                    auto t = std::make_shared<Ticket>(tId, fId, passenger, price, sc);
-                    allTickets.push_back(t);
-                    flight->addTicket(t);
-                    if (tId > maxTId) maxTId = tId;
+                    if (flight && passenger) {
+                        SeatClass sc = static_cast<SeatClass>(seatClassInt);
+                        auto t = std::make_shared<Ticket>(tId, fId, passenger, price, sc);
+                        allTickets.push_back(t);
+                        flight->addTicket(t);
+                        if (tId > maxTId) maxTId = tId;
+                    }
+                }
+                catch (...) {
+                    continue;
                 }
             }
         }

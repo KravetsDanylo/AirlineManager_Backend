@@ -26,7 +26,7 @@ public:
     std::shared_ptr<Flight> getFlightById(int id);
 
     
-    bool bookTicket(int flightId, int passengerId, double price, SeatClass sc);
+    void bookTicket(int flightId, int passengerId, double price, SeatClass sc);
     bool cancelTicket(int ticketId);
 
     
