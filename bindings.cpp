@@ -68,6 +68,7 @@ PYBIND11_MODULE(airline_backend, m) {
         .def("getFlightById", &AirlineManager::getFlightById)
         .def("bookTicket", &AirlineManager::bookTicket)
         .def("cancelTicket", &AirlineManager::cancelTicket)
+        .def("getAllTickets", &AirlineManager::getAllTickets)
         .def("sortFlights", &AirlineManager::sortFlights)
         .def("searchFlights", &AirlineManager::searchFlights)
         .def("saveData", &AirlineManager::saveData)

@@ -122,6 +122,9 @@ bool AirlineManager::cancelTicket(int ticketId) {
     allTickets.erase(it);
     return true;
 }
+std::vector<std::shared_ptr<Ticket>> AirlineManager::getAllTickets() const {
+    return allTickets;
+}
 
 void AirlineManager::sortFlights(SortCriteria criteria) {
     std::sort(flights.begin(), flights.end(),
@@ -141,9 +144,13 @@ void AirlineManager::sortFlights(SortCriteria criteria) {
 
 std::vector<std::shared_ptr<Flight>> AirlineManager::searchFlights(std::string destination) {
     std::vector<std::shared_ptr<Flight>> result;
+    std::string queryLower = destination;
+    std::transform(queryLower.begin(), queryLower.end(), queryLower.begin(), ::tolower);
+
     for (const auto& f : flights) {
-        
-        if (f->getDestination().find(destination) != std::string::npos) {
+        std::string destLower = f->getDestination();
+        std::transform(destLower.begin(), destLower.end(), destLower.begin(), ::tolower);
+        if (destLower.find(queryLower) != std::string::npos) {
             result.push_back(f);
         }
     }

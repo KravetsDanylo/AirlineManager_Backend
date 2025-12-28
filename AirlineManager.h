@@ -28,8 +28,8 @@ public:
     
     void bookTicket(int flightId, int passengerId, double price, SeatClass sc);
     bool cancelTicket(int ticketId);
+    std::vector<std::shared_ptr<Ticket>> getAllTickets() const;
 
-    
     void sortFlights(SortCriteria criteria);
     std::vector<std::shared_ptr<Flight>> searchFlights(std::string destination);
 
