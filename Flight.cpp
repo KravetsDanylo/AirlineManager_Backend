@@ -1,10 +1,11 @@
 #include "Flight.h"
 #include <algorithm>
 #include <sstream>
-Flight::Flight(int id, std::string dest, std::string date, int duration, int maxSeats)
-    : id(id), destination(dest), dateTime(date), durationMinutes(duration), maxSeats(maxSeats) {}
+Flight::Flight(int id, std::string origin, std::string dest, std::string date, int duration, int maxSeats)
+    : id(id), origin(origin), destination(dest), dateTime(date), durationMinutes(duration), maxSeats(maxSeats) { }
 
 int Flight::getId() const { return id; }
+std::string Flight::getOrigin() const { return origin; }
 std::string Flight::getDestination() const { return destination; }
 std::string Flight::getDateTime() const { return dateTime; }
 int Flight::getDuration() const { return durationMinutes; }

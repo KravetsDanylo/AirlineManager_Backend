@@ -7,6 +7,7 @@
 class Flight {
 private:
     int id;
+    std::string origin;
     std::string destination;
     std::string dateTime;
     int durationMinutes;
@@ -14,9 +15,10 @@ private:
     std::vector<std::shared_ptr<Ticket>> tickets;
 
 public:
-    Flight(int id, std::string dest, std::string date, int duration, int maxSeats);
+    Flight(int id, std::string origin, std::string dest, std::string date, int duration, int maxSeats);
 
     int getId() const;
+    std::string getOrigin() const;
     std::string getDestination() const;
     std::string getDateTime() const;
     int getDuration() const;

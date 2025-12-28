@@ -1,5 +1,7 @@
 #include "AirlineManager.h"
 #include <algorithm>
+#include <queue>
+#include <unordered_set>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -26,14 +28,14 @@ std::shared_ptr<Passenger> AirlineManager::getPassengerById(int id) {
     return nullptr;
 }
 
-void AirlineManager::createFlight(int id, std::string dest, std::string date, int duration, int seats) {
+void AirlineManager::createFlight(int id, std::string origin, std::string dest, std::string date, int duration, int seats) {
     if (duration <= 0 || seats <= 0) {
         throw std::invalid_argument("Duration and seats must be positive integers!");
     }
     if (getFlightById(id) != nullptr) {
         throw std::invalid_argument("Flight with this ID already exists!");
     }
-    auto f = std::make_shared<Flight>(id, dest, date, duration, seats);
+    auto f = std::make_shared<Flight>(id, origin, dest, date, duration, seats);
     flights.push_back(f);
 }
 bool AirlineManager::cancelFlight(int flightId) {
@@ -142,19 +144,79 @@ void AirlineManager::sortFlights(SortCriteria criteria) {
         });
 }
 
-std::vector<std::shared_ptr<Flight>> AirlineManager::searchFlights(std::string destination) {
+
+std::vector<std::shared_ptr<Flight>> AirlineManager::searchFlights(std::string query, SearchCriteria criteria) {
     std::vector<std::shared_ptr<Flight>> result;
-    std::string queryLower = destination;
+    std::string queryLower = query;
     std::transform(queryLower.begin(), queryLower.end(), queryLower.begin(), ::tolower);
 
     for (const auto& f : flights) {
+        bool match = false;
+
+        std::string originLower = f->getOrigin();
+        std::transform(originLower.begin(), originLower.end(), originLower.begin(), ::tolower);
+
         std::string destLower = f->getDestination();
         std::transform(destLower.begin(), destLower.end(), destLower.begin(), ::tolower);
-        if (destLower.find(queryLower) != std::string::npos) {
+
+        
+        switch (criteria) {
+        case SearchCriteria::BY_ORIGIN:
+            if (originLower.find(queryLower) != std::string::npos) match = true;
+            break;
+        case SearchCriteria::BY_DESTINATION:
+            if (destLower.find(queryLower) != std::string::npos) match = true;
+            break;
+        case SearchCriteria::BY_BOTH:
+            if (originLower.find(queryLower) != std::string::npos ||
+                destLower.find(queryLower) != std::string::npos) match = true;
+            break;
+        }
+
+        if (match) {
             result.push_back(f);
         }
     }
     return result;
+}
+
+std::vector<std::shared_ptr<Flight>> AirlineManager::findRoute(std::string origin, std::string destination) {
+
+    auto toLowerCase = [](std::string s) { 
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower); 
+        return s;
+        };
+    
+    std::string startCity = toLowerCase(origin);
+    std::string endCity = toLowerCase(destination);
+    // f.e. <Lviv, {f1, f2, f3}>
+    std::queue<std::pair<std::string, std::vector<std::shared_ptr<Flight>>>> q;
+    std::unordered_set<std::string> visitedCities;
+    q.push({startCity,{}});
+    visitedCities.insert(startCity);
+    while (!q.empty()) {
+        auto currentElement = q.front();
+        std::string currentCity = currentElement.first;
+        std::vector<std::shared_ptr<Flight>> path = currentElement.second;
+        if (currentCity == destination) {
+            return path;
+        }
+        for (auto&f : flights) {
+            std::string fOrigin = toLowerCase(f->getOrigin());
+            if (fOrigin == currentCity) {
+                std::string fDest = toLowerCase(f->getDestination());
+                if (visitedCities.find(fDest)  == visitedCities.end()) {
+                    visitedCities.insert(fDest);
+                    std::vector<std::shared_ptr<Flight>> newPath = path;
+                    path.push_back(f);
+                    q.push({fDest, newPath});
+                }
+            }
+        
+        }
+    
+    }
+    return {};
 }
 
 void AirlineManager::saveData() const {
@@ -177,7 +239,7 @@ void AirlineManager::saveData() const {
     }
 
     for (const auto& f : flights) {
-        fFile << f->getId() << "|" << f->getDestination() << "|" << f->getDateTime() << "|"
+        fFile << f->getId() << "|" << f ->getOrigin() << "|" << f->getDestination() << "|" << f->getDateTime() << "|"
             << f->getDuration() << "|" << f->getMaxSeats() << "\n";
     }
     fFile.close();
@@ -237,9 +299,9 @@ void AirlineManager::loadData() {
             std::vector<std::string> row;
             while (std::getline(ss, segment, '|')) row.push_back(segment);
 
-            if (row.size() >= 5) {
+            if (row.size() >= 6) {
                 try {
-                    auto f = std::make_shared<Flight>(std::stoi(row[0]), row[1], row[2], std::stoi(row[3]), std::stoi(row[4]));
+                    auto f = std::make_shared<Flight>(std::stoi(row[0]), row[1], row[2], row[3], std::stoi(row[4]), std::stoi(row[5]));
                     flights.push_back(f);
                 }
                 catch (...) {

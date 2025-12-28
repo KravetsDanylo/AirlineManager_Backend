@@ -23,10 +23,15 @@ PYBIND11_MODULE(airline_backend, m) {
         .value("BY_DURATION", SortCriteria::BY_DURATION)
         .value("BY_DESTINATION", SortCriteria::BY_DESTINATION)
         .export_values();
-
+   
+    py::enum_<SearchCriteria>(m, "SearchCriteria")
+        .value("BY_ORIGIN", SearchCriteria::BY_ORIGIN)
+        .value("BY_DESTINATION", SearchCriteria::BY_DESTINATION)
+        .value("BY_BOTH", SearchCriteria::BY_BOTH)
+        .export_values();
     
     py::class_<Passenger, std::shared_ptr<Passenger>>(m, "Passenger")
-        .def("getId", &Passenger::getId)
+        .def("getId", &Passenger::getId) 
         .def("getName", &Passenger::getName)
         .def("getPassport", &Passenger::getPassport)
         .def("getPhone", &Passenger::getPhone)
@@ -47,6 +52,7 @@ PYBIND11_MODULE(airline_backend, m) {
    
     py::class_<Flight, std::shared_ptr<Flight>>(m, "Flight")
         .def("getId", &Flight::getId)
+        .def("getOrigin", &Flight::getOrigin)
         .def("getDestination", &Flight::getDestination)
         .def("getDateTime", &Flight::getDateTime)
         .def("getDuration", &Flight::getDuration)
@@ -70,7 +76,8 @@ PYBIND11_MODULE(airline_backend, m) {
         .def("cancelTicket", &AirlineManager::cancelTicket)
         .def("getAllTickets", &AirlineManager::getAllTickets)
         .def("sortFlights", &AirlineManager::sortFlights)
-        .def("searchFlights", &AirlineManager::searchFlights)
+        .def("searchFlights", &AirlineManager::searchFlights, py::arg("query"), py::arg("criteria"))
+        .def("findRoute", &AirlineManager::findRoute)
         .def("saveData", &AirlineManager::saveData)
         .def("loadData", &AirlineManager::loadData);
 }

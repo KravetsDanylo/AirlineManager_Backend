@@ -20,7 +20,7 @@ public:
     std::shared_ptr<Passenger> getPassengerById(int id);
 
     
-    void createFlight(int id, std::string dest, std::string date, int duration, int seats);
+    void createFlight(int id, std::string origin, std::string dest, std::string date, int duration, int seats);
     bool cancelFlight(int flightId);
     std::vector<std::shared_ptr<Flight>> getAllFlights() const;
     std::shared_ptr<Flight> getFlightById(int id);
@@ -31,7 +31,9 @@ public:
     std::vector<std::shared_ptr<Ticket>> getAllTickets() const;
 
     void sortFlights(SortCriteria criteria);
-    std::vector<std::shared_ptr<Flight>> searchFlights(std::string destination);
+    std::vector<std::shared_ptr<Flight>> searchFlights(std::string query, SearchCriteria criteria);
+    // used BFS algorithm for this method
+    std::vector<std::shared_ptr<Flight>> findRoute(std::string origin, std::string destination);
 
     
     void saveData() const;
