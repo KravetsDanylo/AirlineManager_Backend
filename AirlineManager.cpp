@@ -196,6 +196,7 @@ std::vector<std::shared_ptr<Flight>> AirlineManager::findRoute(std::string origi
     visitedCities.insert(startCity);
     while (!q.empty()) {
         auto currentElement = q.front();
+        q.pop();
         std::string currentCity = currentElement.first;
         std::vector<std::shared_ptr<Flight>> path = currentElement.second;
         if (currentCity == destination) {
@@ -208,7 +209,7 @@ std::vector<std::shared_ptr<Flight>> AirlineManager::findRoute(std::string origi
                 if (visitedCities.find(fDest)  == visitedCities.end()) {
                     visitedCities.insert(fDest);
                     std::vector<std::shared_ptr<Flight>> newPath = path;
-                    path.push_back(f);
+                    newPath.push_back(f);
                     q.push({fDest, newPath});
                 }
             }
