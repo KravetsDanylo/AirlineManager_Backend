@@ -199,7 +199,7 @@ std::vector<std::shared_ptr<Flight>> AirlineManager::findRoute(std::string origi
         q.pop();
         std::string currentCity = currentElement.first;
         std::vector<std::shared_ptr<Flight>> path = currentElement.second;
-        if (currentCity == destination) {
+        if (currentCity == endCity) {
             return path;
         }
         for (auto&f : flights) {
