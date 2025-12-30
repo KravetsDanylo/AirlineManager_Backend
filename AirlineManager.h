@@ -12,7 +12,7 @@ private:
     std::vector<std::shared_ptr<Flight>> flights;
     std::vector<std::shared_ptr<Passenger>> passengers;
     std::vector<std::shared_ptr<Ticket>> allTickets;
-
+    
 public:
     
     int createPassenger(std::string name, std::string passport, std::string phone, std::string email, std::string address, std::string birthDate);
@@ -32,7 +32,7 @@ public:
 
     void sortFlights(SortCriteria criteria);
     std::vector<std::shared_ptr<Flight>> searchFlights(std::string query, SearchCriteria criteria);
-    // used BFS algorithm for this method
+    // based on BFS algorithm
     std::vector<std::shared_ptr<Flight>> findRoute(std::string origin, std::string destination);
 
     

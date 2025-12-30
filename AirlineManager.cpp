@@ -2,11 +2,20 @@
 #include <algorithm>
 #include <queue>
 #include <unordered_set>
+#include <iomanip>  // for std::get_time
+#include <ctime>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 
 
+std::time_t parseDateTime(const std::string& dateTimeStr) {
+    std::tm tm = {};
+    std::stringstream ss(dateTimeStr);
+    // expected format: 2023-11-01 08:00
+    ss >> std::get_time(&tm, "%Y-%m-%d %H:%M");
+    return std::mktime(&tm);
+}
 
 int AirlineManager::createPassenger(std::string name, std::string passport, std::string phone, std::string email, std::string address, std::string birthDate) {
     if (name.empty() || passport.empty()) {
@@ -182,40 +191,73 @@ std::vector<std::shared_ptr<Flight>> AirlineManager::searchFlights(std::string q
 
 std::vector<std::shared_ptr<Flight>> AirlineManager::findRoute(std::string origin, std::string destination) {
 
-    auto toLowerCase = [](std::string s) { 
-        std::transform(s.begin(), s.end(), s.begin(), ::tolower); 
+    auto toLowerCase = [](std::string s) {
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
         return s;
         };
-    
+
     std::string startCity = toLowerCase(origin);
     std::string endCity = toLowerCase(destination);
-    // f.e. <Lviv, {f1, f2, f3}>
+
+    // f.e. {Lviv, {F1, F2, F3}}
     std::queue<std::pair<std::string, std::vector<std::shared_ptr<Flight>>>> q;
-    std::unordered_set<std::string> visitedCities;
-    q.push({startCity,{}});
-    visitedCities.insert(startCity);
+    
+    q.push({ startCity, {} });
+
+    
     while (!q.empty()) {
         auto currentElement = q.front();
         q.pop();
+
         std::string currentCity = currentElement.first;
         std::vector<std::shared_ptr<Flight>> path = currentElement.second;
+
         if (currentCity == endCity) {
             return path;
         }
-        for (auto&f : flights) {
+
+        std::time_t arrivalTimeCurrent = 0;
+        if (!path.empty()) {
+            auto lastFlight = path.back();
+            std::time_t departureTime = parseDateTime(lastFlight->getDateTime());
+            arrivalTimeCurrent = departureTime + (lastFlight->getDuration() * 60); // lastFlight->getDuration() * 60 - convert to second
+        }
+
+        for (const auto& f : flights) {
             std::string fOrigin = toLowerCase(f->getOrigin());
+
+            
             if (fOrigin == currentCity) {
                 std::string fDest = toLowerCase(f->getDestination());
-                if (visitedCities.find(fDest)  == visitedCities.end()) {
-                    visitedCities.insert(fDest);
+                //Time chacking
+                bool timeIsOk = true;
+                if (!path.empty()) {
+                    std::time_t nextDeparture = parseDateTime(f->getDateTime());
+                    
+                    if (nextDeparture < (arrivalTimeCurrent + 3600)) { // 3600 - one hour to traspantation
+                        timeIsOk = false;
+                    }
+                }
+                // Loop chacking
+                bool alreadyInPath = false;
+                if (fDest == startCity) alreadyInPath = true; 
+
+                for (const auto& step : path) {
+                 
+                    if (toLowerCase(step->getOrigin()) == fDest || toLowerCase(step->getDestination()) == fDest) {
+                        alreadyInPath = true;
+                        break;
+                    }
+                }
+
+                
+                if (timeIsOk && !alreadyInPath) {
                     std::vector<std::shared_ptr<Flight>> newPath = path;
                     newPath.push_back(f);
-                    q.push({fDest, newPath});
+                    q.push({ fDest, newPath });
                 }
             }
-        
         }
-    
     }
     return {};
 }
